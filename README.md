@@ -81,7 +81,6 @@ Our goal is to create a **web-based interactive service** that combines **comput
 ## ⚙️ Build & Tooling
 - **Vite Configuration (`vite.config.ts`):**
   - Path alias `@ → src/`  
-  - Uses `lovable-tagger` for component annotation  
   - Dev server runs on port **8080**  
   - `base: './'` for Netlify deployment  
 - **Linting & Type Checking:**  
