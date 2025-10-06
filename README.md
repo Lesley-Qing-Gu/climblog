@@ -78,7 +78,7 @@ Our goal is to create a **web-based interactive service** that combines **comput
 ---
 
 ## ☁️ Deployment
-- **Hosting:** [Netlify](https://climbblog2025.netlify.app)  
+- **Hosting:** [Netlify](https://climblog2025.netlify.app/)  
   - Build command: `npm run build`  
   - Publish directory: `dist/`  
   - Current mode: **Manual deploys** (Netlify Drop)  
