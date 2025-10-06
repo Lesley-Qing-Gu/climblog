@@ -15,46 +15,46 @@ interface Route {
 
 export default function LogbookPage() {
   const routes: Route[] = [
-      {
-        id: 1,
-        image: climbingWallSample,
-        difficulty: "V4",
-        date: "Today",
-        location: "Boulder Gym",
-        rating: 5,
-        notes: "Nailed it! Perfect technique on the overhang 💪",
-        color: "hold-red"
-      },
-      {
-        id: 2,
-        image: climbingWallSample,
-        difficulty: "V3",
-        date: "Yesterday",
-        location: "Climb Zone",
-        rating: 4,
-        notes: "Great holds, challenging start sequence",
-        color: "hold-blue"
-      },
-      {
-        id: 3,
-        image: climbingWallSample,
-        difficulty: "V5",
-        date: "2 days ago",
-        location: "Boulder Gym",
-        rating: 3,
-        notes: "Still working on this one... so close!",
-        color: "hold-green"
-      },
-      {
-        id: 4,
-        image: climbingWallSample,
-        difficulty: "V2",
-        date: "1 week ago",
-        location: "Rock Hall",
-        rating: 5,
-        notes: "Perfect warm-up route! Love the flow ✨",
-        color: "hold-yellow"
-      }
+    {
+      id: 1,
+      image: climbingWallSample,
+      difficulty: "V4",
+      date: "Today",
+      location: "Boulder Gym",
+      rating: 5,
+      notes: "Nailed it! Perfect technique on the overhang 💪",
+      color: "primary"
+    },
+    {
+      id: 2,
+      image: climbingWallSample,
+      difficulty: "V3",
+      date: "Yesterday",
+      location: "Climb Zone",
+      rating: 4,
+      notes: "Great holds, challenging start sequence",
+      color: "accent"
+    },
+    {
+      id: 3,
+      image: climbingWallSample,
+      difficulty: "V5",
+      date: "2 days ago",
+      location: "Boulder Gym",
+      rating: 3,
+      notes: "Still working on this one... so close!",
+      color: "secondary"
+    },
+    {
+      id: 4,
+      image: climbingWallSample,
+      difficulty: "V2",
+      date: "1 week ago",
+      location: "Rock Hall",
+      rating: 5,
+      notes: "Perfect warm-up route! Love the flow ✨",
+      color: "warning"
+    }
   ];
 
   const renderStars = (rating: number) => {
@@ -85,7 +85,7 @@ export default function LogbookPage() {
       {/* Route Cards */}
       <div className="space-y-4 px-4">
         {routes.map((route) => (
-          <div key={route.id} className="card-gym hover:scale-[1.02] cursor-pointer">
+          <div key={route.id} className="card-kawaii hover:scale-[1.02] cursor-pointer">
             <div className="flex gap-4">
               {/* Route Image */}
               <div className="relative flex-shrink-0">
@@ -94,7 +94,7 @@ export default function LogbookPage() {
                   alt={`Route ${route.difficulty}`}
                   className="w-20 h-20 rounded-lg object-cover"
                 />
-                <div className={`absolute -top-2 -right-2 w-8 h-8 rounded-lg bg-${route.color} flex items-center justify-center shadow-hold`}>
+                <div className={`absolute -top-2 -right-2 w-8 h-8 rounded-full bg-${route.color} flex items-center justify-center shadow-kawaii`}>
                   <span className="text-xs font-bold text-white">{route.difficulty}</span>
                 </div>
               </div>
@@ -117,7 +117,7 @@ export default function LogbookPage() {
                   </div>
                 </div>
 
-                <div className="bg-wall-medium/50 rounded-lg p-3">
+                <div className="bg-muted/30 rounded-lg p-3">
                   <p className="text-sm text-foreground">{route.notes}</p>
                 </div>
               </div>
@@ -128,13 +128,13 @@ export default function LogbookPage() {
 
       {/* Add Route Button */}
       <div className="px-4">
-        <Button className="w-full btn-hold text-lg py-6">
+        <Button className="w-full btn-kawaii text-lg py-6">
           📸 Add New Route
         </Button>
       </div>
 
       {/* Stats Summary */}
-      <div className="mx-4 p-4 bg-gradient-to-r from-wall-medium/30 to-wall-light rounded-xl border border-border">
+      <div className="mx-4 p-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-xl">
         <div className="text-center space-y-2">
           <p className="text-sm text-muted-foreground">This Month</p>
           <div className="flex justify-center gap-6">

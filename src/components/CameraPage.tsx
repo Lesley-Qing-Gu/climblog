@@ -19,13 +19,13 @@ export default function CameraPage() {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <div className="text-center space-y-2 px-4 pt-8 pb-6">
-        <h1 className="text-2xl font-bold text-foreground">Route Capture 📸</h1>
-        <p className="text-muted-foreground">Capture routes & detect holds automatically!</p>
+        <h1 className="text-2xl font-bold text-foreground">Hold Detector 📸</h1>
+        <p className="text-muted-foreground">Capture routes & detect holds magically!</p>
       </div>
 
       {/* Camera Viewfinder */}
       <div className="flex-1 px-4">
-        <div className="relative w-full h-full max-h-96 bg-gradient-to-br from-wall-medium/30 to-wall-dark/40 rounded-xl overflow-hidden shadow-card border border-border">
+        <div className="relative w-full h-full max-h-96 bg-gradient-to-br from-muted/20 to-muted/40 rounded-xl overflow-hidden shadow-card">
           {/* Camera Preview Placeholder */}
           <div className="absolute inset-0 flex items-center justify-center">
             {isCapturing ? (
@@ -65,7 +65,7 @@ export default function CameraPage() {
           <Button
             onClick={handleCapture}
             disabled={isCapturing}
-            className="w-20 h-20 rounded-xl bg-primary hover:bg-primary/90 shadow-float hover:shadow-card hover:scale-105 transition-all duration-300"
+            className="w-20 h-20 rounded-full bg-primary hover:bg-primary/90 shadow-float hover:shadow-card hover:scale-105 transition-all duration-300"
           >
             {isCapturing ? (
               <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -77,15 +77,15 @@ export default function CameraPage() {
 
         {/* Secondary Controls */}
         <div className="flex justify-center gap-6">
-          <Button variant="outline" size="lg" className="rounded-xl w-14 h-14 border-border hover:bg-wall-medium/30">
+          <Button variant="outline" size="lg" className="rounded-full w-14 h-14">
             <Image className="w-5 h-5" />
           </Button>
           
-          <Button variant="outline" size="lg" className="rounded-xl w-14 h-14 border-border hover:bg-wall-medium/30">
+          <Button variant="outline" size="lg" className="rounded-full w-14 h-14">
             <RotateCcw className="w-5 h-5" />
           </Button>
           
-          <Button variant="outline" size="lg" className="rounded-xl w-14 h-14 border-border hover:bg-wall-medium/30">
+          <Button variant="outline" size="lg" className="rounded-full w-14 h-14">
             <Zap className="w-5 h-5" />
           </Button>
         </div>
@@ -108,9 +108,9 @@ export default function CameraPage() {
         </div>
 
         {/* Tips */}
-        <div className="bg-wall-medium/30 rounded-xl p-4 space-y-2 border border-border">
+        <div className="bg-accent/10 rounded-xl p-4 space-y-2">
           <h3 className="font-semibold text-foreground flex items-center gap-2">
-            <span className="text-info">💡</span>
+            <span className="text-accent">💡</span>
             Photography Tips
           </h3>
           <ul className="text-sm text-muted-foreground space-y-1">

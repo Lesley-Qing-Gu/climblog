@@ -21,47 +21,47 @@ export default function ChallengesPage() {
   const challenges: Challenge[] = [
     {
       id: 1,
-      title: "Red Route Rush",
-      description: "Complete 5 routes using only red holds! Show those crimson climbs who's boss 💪",
+      title: "Pink Power Hour",
+      description: "Complete 5 routes using only pink holds! Show those rosy routes who's boss 💪",
       difficulty: "V2-V4",
       timeLimit: "60 minutes",
       points: 150,
-      emoji: "🔴",
-      color: "hold-red",
-      gradient: "from-hold-red to-hold-orange"
+      emoji: "🌸",
+      color: "primary",
+      gradient: "from-primary to-primary/60"
     },
     {
       id: 2,
-      title: "Overhang Master",
+      title: "Overhang Queen",
       description: "Conquer 3 overhang routes in a single session. Time to defy gravity!",
       difficulty: "V3-V5",
       timeLimit: "2 hours",
       points: 200,
-      emoji: "⛰️",
-      color: "hold-blue",
-      gradient: "from-hold-blue to-hold-cyan"
+      emoji: "👑",
+      color: "secondary",
+      gradient: "from-secondary to-secondary/60"
     },
     {
       id: 3,
-      title: "Green Machine",
-      description: "Complete the hardest green route in the gym. Go green or go home! ✨",
+      title: "Gentle Giant",
+      description: "Complete the tallest route in the gym. Reach for the stars! ✨",
       difficulty: "V1-V3",
       timeLimit: "No limit",
       points: 100,
-      emoji: "🟢",
-      color: "hold-green",
-      gradient: "from-hold-green to-hold-yellow"
+      emoji: "🌟",
+      color: "accent",
+      gradient: "from-accent to-accent/60"
     },
     {
       id: 4,
       title: "Speed Demon",
-      description: "Complete any route in under 30 seconds. Fast and focused!",
+      description: "Complete any route in under 30 seconds. Fast and fabulous!",
       difficulty: "V1-V2",
       timeLimit: "30 seconds",
       points: 175,
       emoji: "⚡",
-      color: "hold-purple",
-      gradient: "from-hold-purple to-hold-pink"
+      color: "warning",
+      gradient: "from-warning to-warning/60"
     }
   ];
 
@@ -91,7 +91,7 @@ export default function ChallengesPage() {
       {/* Header */}
       <div className="text-center space-y-2 px-4 pt-8 pb-6">
         <h1 className="text-2xl font-bold text-foreground">Challenges ⚡</h1>
-        <p className="text-muted-foreground">Swipe to find your next route!</p>
+        <p className="text-muted-foreground">Swipe to find your next adventure!</p>
       </div>
 
       {/* Challenge Card Stack */}
@@ -111,11 +111,11 @@ export default function ChallengesPage() {
           ))}
 
           {/* Main Card */}
-          <div className={`card-gym ${swipeAnimation || ''} relative z-10`}>
-            <div className={`h-96 bg-gradient-to-br ${currentChallenge.gradient} rounded-xl p-6 text-white space-y-4 flex flex-col shadow-float`}>
+          <div className={`card-kawaii ${swipeAnimation || ''} relative z-10`}>
+            <div className={`h-96 bg-gradient-to-br ${currentChallenge.gradient} rounded-xl p-6 text-white space-y-4 flex flex-col`}>
               {/* Challenge Emoji & Title */}
               <div className="text-center space-y-2">
-                <div className="text-4xl bounce-gentle">{currentChallenge.emoji}</div>
+                <div className="text-4xl float-gentle">{currentChallenge.emoji}</div>
                 <h2 className="text-xl font-bold">{currentChallenge.title}</h2>
               </div>
 
