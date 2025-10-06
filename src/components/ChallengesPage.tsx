@@ -2,6 +2,16 @@ import { useState } from "react";
 import { Heart, X, Star, Clock, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Generate random climbing holds positions
+function getRandomDots(count: number) {
+  const colors = ["#f87171", "#34d399", "#60a5fa", "#fbbf24", "#a78bfa", "#fb7185", "#38bdf8"];
+  return Array.from({ length: count }).map((_, i) => ({
+    top: `${Math.random() * 85 + 5}%`,    // 5% ~ 90%
+    left: `${Math.random() * 85 + 5}%`,   // 5% ~ 90%
+    color: colors[i % colors.length],
+  }));
+}
+
 interface Challenge {
   id: number;
   title: string;
@@ -17,6 +27,9 @@ interface Challenge {
 export default function ChallengesPage() {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [swipeAnimation, setSwipeAnimation] = useState<string | null>(null);
+
+  // Generate 8 random climbing holds
+  const climbingDots = getRandomDots(8);
 
   const challenges: Challenge[] = [
     {
@@ -87,15 +100,33 @@ export default function ChallengesPage() {
   if (!currentChallenge) return null;
 
   return (
-    <div className="flex flex-col min-h-screen pb-24 bg-background">
+    <div className="flex flex-col min-h-screen pb-24 bg-background relative overflow-hidden">
+      {/* Random climbing holds on the background */}
+      {climbingDots.map((dot, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            top: dot.top,
+            left: dot.left,
+            width: "40px",
+            height: "40px",
+            background: dot.color,
+            borderRadius: "50%",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+            zIndex: 1,
+          }}
+        />
+      ))}
+
       {/* Header */}
-      <div className="text-center space-y-2 px-4 pt-8 pb-6">
+      <div className="text-center space-y-2 px-4 pt-8 pb-6 relative z-10">
         <h1 className="text-2xl font-bold text-foreground">Challenges ⚡</h1>
         <p className="text-muted-foreground">Swipe to find your next adventure!</p>
       </div>
 
       {/* Challenge Card Stack */}
-      <div className="flex-1 flex items-center justify-center px-4">
+      <div className="flex-1 flex items-center justify-center px-4 relative z-10">
         <div className="relative w-full max-w-sm">
           {/* Background Cards */}
           {challenges.slice(currentCardIndex + 1, currentCardIndex + 3).map((challenge, index) => (
@@ -152,7 +183,7 @@ export default function ChallengesPage() {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-center items-center gap-8 px-4 py-6">
+      <div className="flex justify-center items-center gap-8 px-4 py-6 relative z-10">
         <Button
           onClick={() => handleSwipe('left')}
           variant="outline"
@@ -181,7 +212,7 @@ export default function ChallengesPage() {
       </div>
 
       {/* Challenge Progress */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 relative z-10">
         <div className="flex justify-center gap-2">
           {challenges.map((_, index) => (
             <div

@@ -2,8 +2,21 @@ import { useState } from "react";
 import { Camera, RotateCcw, Image, Zap, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Generate random climbing holds positions
+function getRandomDots(count: number) {
+  const colors = ["#f87171", "#34d399", "#60a5fa", "#fbbf24", "#a78bfa", "#fb7185", "#38bdf8"];
+  return Array.from({ length: count }).map((_, i) => ({
+    top: `${Math.random() * 85 + 5}%`,    // 5% ~ 90%
+    left: `${Math.random() * 85 + 5}%`,   // 5% ~ 90%
+    color: colors[i % colors.length],
+  }));
+}
+
 export default function CameraPage() {
   const [isCapturing, setIsCapturing] = useState(false);
+
+  // Generate 8 random climbing holds
+  const climbingDots = getRandomDots(8);
 
   const handleCapture = () => {
     setIsCapturing(true);
@@ -16,15 +29,33 @@ export default function CameraPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background relative overflow-hidden">
+      {/* Random climbing holds on the background */}
+      {climbingDots.map((dot, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            top: dot.top,
+            left: dot.left,
+            width: "40px",
+            height: "40px",
+            background: dot.color,
+            borderRadius: "50%",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+            zIndex: 1,
+          }}
+        />
+      ))}
+
       {/* Header */}
-      <div className="text-center space-y-2 px-4 pt-8 pb-6">
+      <div className="text-center space-y-2 px-4 pt-8 pb-6 relative z-10">
         <h1 className="text-2xl font-bold text-foreground">Hold Detector 📸</h1>
         <p className="text-muted-foreground">Capture routes & detect holds magically!</p>
       </div>
 
       {/* Camera Viewfinder */}
-      <div className="flex-1 px-4">
+      <div className="flex-1 px-4 relative z-10">
         <div className="relative w-full h-full max-h-96 bg-gradient-to-br from-muted/20 to-muted/40 rounded-xl overflow-hidden shadow-card">
           {/* Camera Preview Placeholder */}
           <div className="absolute inset-0 flex items-center justify-center">
@@ -59,7 +90,7 @@ export default function CameraPage() {
       </div>
 
       {/* Camera Controls */}
-      <div className="px-4 py-8 space-y-6">
+      <div className="px-4 py-8 space-y-6 relative z-10">
         {/* Main Capture Button */}
         <div className="flex justify-center">
           <Button
