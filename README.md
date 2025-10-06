@@ -48,3 +48,62 @@ Our goal is to create a **web-based interactive service** that combines **comput
 | Version Control | GitLab (Aalto instance) |
 
 ---
+
+# 🧗‍♀️ ClimbLog – Technology Stack Overview
+
+## 🎨 Frontend Framework
+- **React 18 + TypeScript** – modern, component-based UI framework  
+- **Vite** – ultra-fast development server and build tool  
+- **Tailwind CSS** – utility-first CSS framework for responsive design  
+- **shadcn/ui** – accessible React UI components  
+- **Lucide Icons** – clean and customizable SVG icon set  
+
+---
+
+## 🧩 Project Architecture
+- **Component-based structure:** organized under `src/components` and `src/pages`  
+- **Page logic:** internal navigation managed via React `useState`  
+- **Main pages:** `HomePage`, `LogbookPage`, `ChallengesPage`, `CameraPage`, `ProfilePage`  
+- **Shared UI:** `BottomNavigation` for consistent navigation  
+- **Responsive layout:** designed for both mobile and desktop  
+
+---
+
+## 🌈 Styling & Animation
+- **Tailwind custom theme extensions** (in `tailwind.config.ts`):
+  - Climbing hold color palette: `hold-pink`, `hold-blue`, `hold-green`, etc.  
+  - Custom shadows: `shadow-hold`, `shadow-card`  
+  - Animations: `hold-pop`, `route-trace`, `bounce-gentle`  
+- **Dark mode** supported via `"darkMode": ["class"]`
+
+---
+
+## ⚙️ Build & Tooling
+- **Vite Configuration (`vite.config.ts`):**
+  - Path alias `@ → src/`  
+  - Uses `lovable-tagger` for component annotation  
+  - Dev server runs on port **8080**  
+  - `base: './'` for Netlify deployment  
+- **Linting & Type Checking:**  
+  - ESLint for static analysis  
+  - TypeScript strict mode enabled  
+
+---
+
+## ☁️ Deployment
+- **Hosting:** [Netlify](https://climbblog2025.netlify.app)  
+  - Build command: `npm run build`  
+  - Publish directory: `dist/`  
+  - Current mode: **Manual deploys** (Netlify Drop)  
+  - Option: **GitHub Auto Deploy** for continuous integration  
+- **Previous GitLab CI setup:**  
+  - `.gitlab-ci.yml` configured but **disabled due to missing Runners**  
+  - Switched to Netlify for accessible hosting  
+
+---
+
+## 🧰 Development Workflow
+```bash
+npm install
+npm run dev     # start local dev server at http://localhost:8080
+npm run build   # generate /dist for deployment
