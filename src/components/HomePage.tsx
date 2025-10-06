@@ -30,9 +30,8 @@ export default function HomePage() {
   const climbingDots = getRandomDots(8);
 
   return (
-    // Main background: gray climbing wall
     <div className="relative min-h-screen bg-gray-200 overflow-hidden space-y-6 pb-24">
-      {/* Climbing wall colored holds (random positions) */}
+      {/* Climbing wall colored holds (random positions, z-10) */}
       {climbingDots.map((dot, i) => (
         <div
           key={i}
@@ -45,13 +44,13 @@ export default function HomePage() {
             background: dot.color,
             borderRadius: "50%",
             boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-            zIndex: 1,
+            zIndex: 10,
           }}
         />
       ))}
 
-      {/* Main content */}
-      <div className="relative z-10 space-y-6 pb-24">
+      {/* Main content (z-20) */}
+      <div className="relative z-20 space-y-6 pb-24">
         {/* Header section */}
         <div className="text-center space-y-2 px-4 pt-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">

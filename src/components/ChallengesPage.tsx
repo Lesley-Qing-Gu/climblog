@@ -100,8 +100,8 @@ export default function ChallengesPage() {
   if (!currentChallenge) return null;
 
   return (
-    <div className="flex flex-col min-h-screen pb-24 bg-background relative overflow-hidden">
-      {/* Random climbing holds on the background */}
+    <div className="relative flex flex-col min-h-screen pb-24 bg-background overflow-hidden">
+      {/* Random climbing holds on the background (z-10) */}
       {climbingDots.map((dot, i) => (
         <div
           key={i}
@@ -114,114 +114,117 @@ export default function ChallengesPage() {
             background: dot.color,
             borderRadius: "50%",
             boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-            zIndex: 1,
+            zIndex: 10,
           }}
         />
       ))}
 
-      {/* Header */}
-      <div className="text-center space-y-2 px-4 pt-8 pb-6 relative z-10">
-        <h1 className="text-2xl font-bold text-foreground">Challenges ⚡</h1>
-        <p className="text-muted-foreground">Swipe to find your next adventure!</p>
-      </div>
+      {/* Main content (z-20) */}
+      <div className="relative z-20 flex flex-col min-h-screen">
+        {/* Header */}
+        <div className="text-center space-y-2 px-4 pt-8 pb-6">
+          <h1 className="text-2xl font-bold text-foreground">Challenges ⚡</h1>
+          <p className="text-muted-foreground">Swipe to find your next adventure!</p>
+        </div>
 
-      {/* Challenge Card Stack */}
-      <div className="flex-1 flex items-center justify-center px-4 relative z-10">
-        <div className="relative w-full max-w-sm">
-          {/* Background Cards */}
-          {challenges.slice(currentCardIndex + 1, currentCardIndex + 3).map((challenge, index) => (
-            <div
-              key={challenge.id}
-              className={`absolute inset-0 card-kawaii transform transition-transform duration-300 ${
-                index === 0 ? 'scale-95 translate-y-2' : 'scale-90 translate-y-4 opacity-60'
-              }`}
-              style={{ zIndex: -index - 1 }}
-            >
-              <div className={`h-96 bg-gradient-to-br ${challenge.gradient} rounded-xl`} />
-            </div>
-          ))}
-
-          {/* Main Card */}
-          <div className={`card-kawaii ${swipeAnimation || ''} relative z-10`}>
-            <div className={`h-96 bg-gradient-to-br ${currentChallenge.gradient} rounded-xl p-6 text-white space-y-4 flex flex-col`}>
-              {/* Challenge Emoji & Title */}
-              <div className="text-center space-y-2">
-                <div className="text-4xl float-gentle">{currentChallenge.emoji}</div>
-                <h2 className="text-xl font-bold">{currentChallenge.title}</h2>
+        {/* Challenge Card Stack */}
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="relative w-full max-w-sm">
+            {/* Background Cards */}
+            {challenges.slice(currentCardIndex + 1, currentCardIndex + 3).map((challenge, index) => (
+              <div
+                key={challenge.id}
+                className={`absolute inset-0 card-kawaii transform transition-transform duration-300 ${
+                  index === 0 ? 'scale-95 translate-y-2' : 'scale-90 translate-y-4 opacity-60'
+                }`}
+                style={{ zIndex: -index - 1 }}
+              >
+                <div className={`h-96 bg-gradient-to-br ${challenge.gradient} rounded-xl`} />
               </div>
+            ))}
 
-              {/* Challenge Details */}
-              <div className="flex-1 space-y-4">
-                <p className="text-sm opacity-90 leading-relaxed">
-                  {currentChallenge.description}
-                </p>
+            {/* Main Card */}
+            <div className={`card-kawaii ${swipeAnimation || ''} relative z-10`}>
+              <div className={`h-96 bg-gradient-to-br ${currentChallenge.gradient} rounded-xl p-6 text-white space-y-4 flex flex-col`}>
+                {/* Challenge Emoji & Title */}
+                <div className="text-center space-y-2">
+                  <div className="text-4xl float-gentle">{currentChallenge.emoji}</div>
+                  <h2 className="text-xl font-bold">{currentChallenge.title}</h2>
+                </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Target className="w-4 h-4" />
-                    <span>Difficulty: {currentChallenge.difficulty}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4" />
-                    <span>Time: {currentChallenge.timeLimit}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Star className="w-4 h-4" />
-                    <span>{currentChallenge.points} points</span>
+                {/* Challenge Details */}
+                <div className="flex-1 space-y-4">
+                  <p className="text-sm opacity-90 leading-relaxed">
+                    {currentChallenge.description}
+                  </p>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Target className="w-4 h-4" />
+                      <span>Difficulty: {currentChallenge.difficulty}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="w-4 h-4" />
+                      <span>Time: {currentChallenge.timeLimit}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Star className="w-4 h-4" />
+                      <span>{currentChallenge.points} points</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Swipe Hint */}
-              <div className="text-center text-xs opacity-75 space-y-1">
-                <p>👆 Swipe up to start now</p>
-                <p>❤️ Swipe right to save • ❌ Swipe left to skip</p>
+                {/* Swipe Hint */}
+                <div className="text-center text-xs opacity-75 space-y-1">
+                  <p>👆 Swipe up to start now</p>
+                  <p>❤️ Swipe right to save • ❌ Swipe left to skip</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Action Buttons */}
-      <div className="flex justify-center items-center gap-8 px-4 py-6 relative z-10">
-        <Button
-          onClick={() => handleSwipe('left')}
-          variant="outline"
-          size="lg"
-          className="w-14 h-14 rounded-full border-destructive/30 hover:bg-destructive/10"
-        >
-          <X className="w-6 h-6 text-destructive" />
-        </Button>
+        {/* Action Buttons */}
+        <div className="flex justify-center items-center gap-8 px-4 py-6">
+          <Button
+            onClick={() => handleSwipe('left')}
+            variant="outline"
+            size="lg"
+            className="w-14 h-14 rounded-full border-destructive/30 hover:bg-destructive/10"
+          >
+            <X className="w-6 h-6 text-destructive" />
+          </Button>
 
-        <Button
-          onClick={() => handleSwipe('up')}
-          size="lg"
-          className="w-16 h-16 rounded-full bg-gradient-to-r from-info to-info/80 hover:scale-110 transition-transform"
-        >
-          <Star className="w-6 h-6 text-white" />
-        </Button>
+          <Button
+            onClick={() => handleSwipe('up')}
+            size="lg"
+            className="w-16 h-16 rounded-full bg-gradient-to-r from-info to-info/80 hover:scale-110 transition-transform"
+          >
+            <Star className="w-6 h-6 text-white" />
+          </Button>
 
-        <Button
-          onClick={() => handleSwipe('right')}
-          variant="outline"
-          size="lg"
-          className="w-14 h-14 rounded-full border-success/30 hover:bg-success/10"
-        >
-          <Heart className="w-6 h-6 text-success" />
-        </Button>
-      </div>
+          <Button
+            onClick={() => handleSwipe('right')}
+            variant="outline"
+            size="lg"
+            className="w-14 h-14 rounded-full border-success/30 hover:bg-success/10"
+          >
+            <Heart className="w-6 h-6 text-success" />
+          </Button>
+        </div>
 
-      {/* Challenge Progress */}
-      <div className="px-4 pb-4 relative z-10">
-        <div className="flex justify-center gap-2">
-          {challenges.map((_, index) => (
-            <div
-              key={index}
-              className={`w-2 h-2 rounded-full transition-colors duration-300 ${
-                index === currentCardIndex ? 'bg-primary' : 'bg-muted'
-              }`}
-            />
-          ))}
+        {/* Challenge Progress */}
+        <div className="px-4 pb-4">
+          <div className="flex justify-center gap-2">
+            {challenges.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+                  index === currentCardIndex ? 'bg-primary' : 'bg-muted'
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>

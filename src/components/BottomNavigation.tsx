@@ -16,7 +16,7 @@ const navigationItems = [
 
 export default function BottomNavigation({ currentPage, onPageChange }: BottomNavigationProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border rounded-t-xl shadow-card">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border rounded-t-xl shadow-card">
       <div className="flex items-center justify-around px-4 py-2 max-w-md mx-auto">
         {navigationItems.map((item) => {
           const Icon = item.icon;

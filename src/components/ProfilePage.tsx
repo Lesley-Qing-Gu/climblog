@@ -43,8 +43,8 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-gray-100 overflow-hidden space-y-6 pb-24">
-      {/* Random climbing holds on the background */}
+    <div className="relative min-h-screen bg-gray-100 overflow-hidden">
+      {/* Random climbing holds on the background (z-10) */}
       {climbingDots.map((dot, i) => (
         <div
           key={i}
@@ -57,13 +57,13 @@ export default function ProfilePage() {
             background: dot.color,
             borderRadius: "50%",
             boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-            zIndex: 1,
+            zIndex: 10,
           }}
         />
       ))}
 
-      {/* Main content */}
-      <div className="relative z-10 space-y-6 pb-24">
+      {/* Main content (z-20) */}
+      <div className="relative z-20 space-y-6 pb-24">
         {/* Header */}
         <div className="text-center space-y-4 px-4 pt-8">
           <div className="relative inline-block">
