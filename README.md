@@ -69,23 +69,11 @@ Our goal is to create a **web-based interactive service** that combines **comput
 
 ---
 
-## 🌈 Styling & Animation
-- **Tailwind custom theme extensions** (in `tailwind.config.ts`):
-  - Climbing hold color palette: `hold-pink`, `hold-blue`, `hold-green`, etc.  
-  - Custom shadows: `shadow-hold`, `shadow-card`  
-  - Animations: `hold-pop`, `route-trace`, `bounce-gentle`  
-- **Dark mode** supported via `"darkMode": ["class"]`
-
----
-
-## ⚙️ Build & Tooling
+## ⚙️ Build
 - **Vite Configuration (`vite.config.ts`):**
   - Path alias `@ → src/`  
   - Dev server runs on port **8080**  
   - `base: './'` for Netlify deployment  
-- **Linting & Type Checking:**  
-  - ESLint for static analysis  
-  - TypeScript strict mode enabled  
 
 ---
 
@@ -94,7 +82,6 @@ Our goal is to create a **web-based interactive service** that combines **comput
   - Build command: `npm run build`  
   - Publish directory: `dist/`  
   - Current mode: **Manual deploys** (Netlify Drop)  
-  - Option: **GitHub Auto Deploy** for continuous integration  
 - **Previous GitLab CI setup:**  
   - `.gitlab-ci.yml` configured but **disabled due to missing Runners**  
   - Switched to Netlify for accessible hosting  
