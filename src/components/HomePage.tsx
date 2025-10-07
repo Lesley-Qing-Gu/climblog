@@ -136,7 +136,7 @@ export default function HomePage() {
             <p className="text-foreground font-medium">
               "Every mountain top is within reach if you just keep climbing!"
             </p>
-            <p className="text-sm text-muted-foreground">- ClimbLog Team</p>
+            <p className="text-sm text-muted-foreground">- ClimbLog Team (Qing Gu, Tianshu Cao)</p>
           </div>
         </div>
       </div>
