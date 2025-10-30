@@ -1,36 +1,72 @@
-import { 
-  User, 
-  Settings, 
-  Trophy, 
-  Target, 
-  Calendar, 
-  MapPin, 
+import { useEffect, useMemo, useState } from "react";
+import {
+  User as UserIcon,
+  Trophy,
+  Target,
+  Calendar,
+  MapPin,
   Star,
   TrendingUp,
   Award,
-  Heart
+  Heart,
+  LogOut,
+  LogIn,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { auth, onAuth, googleSignIn, googleSignOut } from "@/lib/firebase";
 
-// Generate random climbing holds positions
+// 随机攀岩点背景
 function getRandomDots(count: number) {
   const colors = ["#f87171", "#34d399", "#60a5fa", "#fbbf24", "#a78bfa", "#fb7185", "#38bdf8"];
   return Array.from({ length: count }).map((_, i) => ({
-    top: `${Math.random() * 85 + 5}%`,    // 5% ~ 90%
-    left: `${Math.random() * 85 + 5}%`,   // 5% ~ 90%
+    top: `${Math.random() * 85 + 5}%`,
+    left: `${Math.random() * 85 + 5}%`,
     color: colors[i % colors.length],
   }));
 }
 
+// Tailwind 动态颜色类映射
+const colorClass = (token: "primary" | "secondary" | "accent" | "warning") => {
+  switch (token) {
+    case "primary":
+      return { bg: "bg-primary/10", text: "text-primary" };
+    case "secondary":
+      return { bg: "bg-secondary/10", text: "text-secondary" };
+    case "accent":
+      return { bg: "bg-accent/10", text: "text-accent" };
+    case "warning":
+      return { bg: "bg-warning/10", text: "text-warning" };
+  }
+};
+
 export default function ProfilePage() {
-  // Generate 8 random climbing holds
-  const climbingDots = getRandomDots(8);
+  const climbingDots = useMemo(() => getRandomDots(8), []);
+  const [user, setUser] = useState(auth.currentUser);
+  const [location, setLocation] = useState<string>(() => localStorage.getItem("climblog.location") || "");
+  const [editingLoc, setEditingLoc] = useState(false);
+  const [locInput, setLocInput] = useState(location);
+
+  useEffect(() => {
+    const unsub = onAuth((u) => setUser(u));
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("climblog.location", location);
+  }, [location]);
+
+  const displayName = user?.displayName || "Guest Climber";
+  const email = user?.email || "";
+  const photoURL = user?.photoURL || "";
+  const joined = user?.metadata?.creationTime
+    ? `Joined ${new Date(user.metadata.creationTime).toLocaleString(undefined, { year: "numeric", month: "long" })}`
+    : "";
 
   const userStats = [
-    { label: "Routes Completed", value: "156", icon: Target, color: "primary" },
-    { label: "Total Height", value: "2,847m", icon: TrendingUp, color: "accent" },
-    { label: "Current Streak", value: "12 days", icon: Calendar, color: "warning" },
-    { label: "Favorite Grade", value: "V4", icon: Star, color: "secondary" },
+    { label: "Routes Completed", value: "156", icon: Target, color: "primary" as const },
+    { label: "Total Height", value: "2,847m", icon: TrendingUp, color: "accent" as const },
+    { label: "Current Streak", value: "12 days", icon: Calendar, color: "warning" as const },
+    { label: "Favorite Grade", value: "V4", icon: Star, color: "secondary" as const },
   ];
 
   const achievements = [
@@ -42,9 +78,22 @@ export default function ProfilePage() {
     { title: "Social Climber", description: "Shared 50 routes", emoji: "📸", earned: false },
   ];
 
+  const saveLocation = () => {
+    setLocation(locInput.trim());
+    setEditingLoc(false);
+  };
+
+  const handleAuthButton = async () => {
+    if (user) {
+      await googleSignOut();
+    } else {
+      await googleSignIn();
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-gray-100 overflow-hidden">
-      {/* Random climbing holds on the background (z-10) */}
+      {/* 背景彩点 */}
       {climbingDots.map((dot, i) => (
         <div
           key={i}
@@ -62,147 +111,152 @@ export default function ProfilePage() {
         />
       ))}
 
-      {/* Main content (z-20) */}
       <div className="relative z-20 space-y-6 pb-24">
         {/* Header */}
         <div className="text-center space-y-4 px-4 pt-8">
           <div className="relative inline-block">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center shadow-float">
-              <User className="w-12 h-12 text-white" />
-            </div>
+            {photoURL ? (
+              <img src={photoURL} alt={displayName} className="w-24 h-24 rounded-full object-cover shadow-float" />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center shadow-float">
+                <UserIcon className="w-12 h-12 text-white" />
+              </div>
+            )}
             <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-success flex items-center justify-center shadow-kawaii">
               <span className="text-lg">🌸</span>
             </div>
           </div>
-          
+
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-foreground">Sarah Chen</h1>
-            <p className="text-muted-foreground flex items-center justify-center gap-1">
+            <h1 className="text-2xl font-bold text-foreground break-all">{displayName}</h1>
+
+            {/* 可编辑位置 */}
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <MapPin className="w-4 h-4" />
-              San Francisco, CA
-            </p>
-            <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-              <span>Joined March 2024</span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Heart className="w-3 h-3" />
-                Boulder Lover
-              </span>
+              {!editingLoc ? (
+                <>
+                  <span>{location || "Add your location"}</span>
+                  {user && (
+                    <button
+                      className="text-xs underline hover:opacity-80"
+                      onClick={() => {
+                        setLocInput(location);
+                        setEditingLoc(true);
+                      }}
+                    >
+                      Edit
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <input
+                    className="px-2 py-1 rounded-md border bg-background text-foreground text-sm"
+                    placeholder="e.g. Stockholm, Sweden"
+                    value={locInput}
+                    onChange={(e) => setLocInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && saveLocation()}
+                  />
+                  <Button size="sm" onClick={saveLocation}>
+                    Save
+                  </Button>
+                </div>
+              )}
             </div>
+
+            {/* 邮箱与时间 */}
+            {user && (
+              <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground flex-wrap">
+                {joined && <span>{joined}</span>}
+                {email && (
+                  <>
+                    <span>•</span>
+                    <span className="truncate max-w-[180px]" title={email}>
+                      {email}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 px-4">
-          {userStats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <div key={index} className="card-kawaii text-center space-y-3 p-4">
-                <div className={`w-10 h-10 rounded-full bg-${stat.color}/10 mx-auto flex items-center justify-center`}>
-                  <Icon className={`w-5 h-5 text-${stat.color}`} />
+        {user && (
+          <div className="grid grid-cols-2 gap-3 px-4">
+            {userStats.map((stat, index) => {
+              const Icon = stat.icon;
+              const cc = colorClass(stat.color);
+              return (
+                <div key={index} className="card-kawaii text-center space-y-3 p-4">
+                  <div className={`w-10 h-10 rounded-full ${cc.bg} mx-auto flex items-center justify-center`}>
+                    <Icon className={`w-5 h-5 ${cc.text}`} />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-lg font-bold text-foreground">{stat.value}</p>
+                    <p className="text-xs text-muted-foreground leading-tight">{stat.label}</p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-lg font-bold text-foreground">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground leading-tight">{stat.label}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Current Level */}
-        <div className="mx-4 card-kawaii space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-achievement-gold to-achievement-bronze flex items-center justify-center shadow-kawaii">
-                <Trophy className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-foreground">Boulder Enthusiast</h3>
-                <p className="text-sm text-muted-foreground">Level 7</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-medium text-primary">2,470 / 3,000 XP</p>
-              <p className="text-xs text-muted-foreground">530 XP to Level 8</p>
-            </div>
+              );
+            })}
           </div>
-          
-          <div className="w-full bg-muted/50 rounded-full h-2">
-            <div
-              className="h-2 rounded-full bg-gradient-to-r from-achievement-gold to-achievement-bronze transition-all duration-1000 ease-out"
-              style={{ width: "82%" }}
-            />
-          </div>
-        </div>
+        )}
 
         {/* Achievements */}
-        <div className="space-y-4 px-4">
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Award className="w-5 h-5 text-primary" />
-            Achievements
-          </h2>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {achievements.map((achievement, index) => (
-              <div
-                key={index}
-                className={`card-kawaii text-center space-y-2 p-4 transition-all duration-300 ${
-                  achievement.earned 
-                    ? "hover:scale-105 shadow-card" 
-                    : "opacity-60 hover:opacity-80"
-                }`}
-              >
-                <div className={`text-2xl ${achievement.earned ? "bounce-gentle" : "grayscale"}`}>
-                  {achievement.emoji}
+        {user && (
+          <div className="space-y-4 px-4">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <Award className="w-5 h-5 text-primary" />
+              Achievements
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              {achievements.map((a, i) => (
+                <div
+                  key={i}
+                  className={`card-kawaii text-center space-y-2 p-4 transition-all duration-300 ${
+                    a.earned ? "hover:scale-105 shadow-card" : "opacity-60 hover:opacity-80"
+                  }`}
+                >
+                  <div className={`text-2xl ${a.earned ? "bounce-gentle" : "grayscale"}`}>{a.emoji}</div>
+                  <div className="space-y-1">
+                    <h4 className={`text-sm font-semibold ${a.earned ? "text-foreground" : "text-muted-foreground"}`}>
+                      {a.title}
+                    </h4>
+                    <p className="text-xs text-muted-foreground leading-tight">{a.description}</p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <h4 className={`text-sm font-semibold ${
-                    achievement.earned ? "text-foreground" : "text-muted-foreground"
-                  }`}>
-                    {achievement.title}
-                  </h4>
-                  <p className="text-xs text-muted-foreground leading-tight">
-                    {achievement.description}
-                  </p>
-                </div>
-                {achievement.earned && (
-                  <div className="w-full h-1 bg-gradient-to-r from-achievement-gold to-achievement-bronze rounded-full" />
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Quick Actions */}
-        <div className="space-y-3 px-4">
-          <Button variant="outline" className="w-full py-4 rounded-xl">
-            <Settings className="w-5 h-5 mr-3" />
-            Settings & Preferences
+        {/* Sign In / Out 按钮（在最底部） */}
+        <div className="px-4 pt-6 pb-12">
+          <Button
+            onClick={handleAuthButton}
+            className={`w-full py-4 rounded-xl text-white font-semibold shadow-card hover:shadow-float transition-all duration-300 ${
+              user
+                ? "bg-primary hover:bg-primary/90" // 🌸 粉色 Sign Out
+                : "bg-primary hover:bg-primary/90" // 同样粉色 Sign In
+            }`}
+          >
+            {user ? (
+              <>
+                <LogOut className="w-5 h-5 mr-2" />
+                Sign out
+              </>
+            ) : (
+              <>
+                <LogIn className="w-5 h-5 mr-2" />
+                Sign in with Google
+              </>
+            )}
           </Button>
-          
-          <Button variant="outline" className="w-full py-4 rounded-xl">
-            <Target className="w-5 h-5 mr-3" />
-            Training Goals
-          </Button>
-          
-          <Button variant="outline" className="w-full py-4 rounded-xl">
-            <Star className="w-5 h-5 mr-3" />
-            Rate ClimbLog
-          </Button>
-        </div>
-
-        {/* Motivational Section */}
-        <div className="mx-4 p-6 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl border border-primary/20">
-          <div className="text-center space-y-2">
-            <div className="text-2xl">🎯</div>
-            <h3 className="font-semibold text-foreground">Keep Climbing!</h3>
-            <p className="text-sm text-muted-foreground">
-              You're doing amazing! Just 3 more routes to hit your weekly goal 💪
-            </p>
-          </div>
         </div>
       </div>
+
+      {/* 防止 Tailwind 清掉这些类 */}
+      <div className="hidden bg-primary/10 text-primary bg-secondary/10 text-secondary bg-accent/10 text-accent bg-warning/10 text-warning" />
     </div>
   );
 }
