@@ -138,6 +138,21 @@
     font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   }
 
+  /* ✅ 背景仍然全宽铺满 */
+  main { 
+    @apply w-full;
+  }
+
+  /* ✅ 前景内容限制最大宽度 960px */
+  main .z-20 {
+    @apply w-full mx-auto px-4 sm:px-6 max-w-content;
+  }
+
+  /* ✅ 需要全宽的页面可以加 full-width 类 */
+  main .z-20.full-width {
+    @apply max-w-none px-0;
+  }
+
   /* Kawaii Utility Classes */
   .mountain-gradient {
     background: var(--gradient-mountain);

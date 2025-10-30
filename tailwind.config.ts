@@ -3,7 +3,12 @@ import animatePlugin from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -15,7 +20,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Nunito', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ["Nunito", "system-ui", "-apple-system", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -51,7 +56,6 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Pastel Climbing Hold Colors
         hold: {
           pink: "hsl(var(--hold-pink))",
           blue: "hsl(var(--hold-blue))",
@@ -93,11 +97,11 @@ export default {
         card: "var(--shadow-card)",
       },
       backgroundImage: {
-        'wall-gradient': 'var(--gradient-wall)',
-        'card-gradient': 'var(--gradient-card)',
-        'hold-gradient-pink': 'var(--gradient-hold-pink)',
-        'hold-gradient-blue': 'var(--gradient-hold-blue)',
-        'hold-gradient-green': 'var(--gradient-hold-green)',
+        "wall-gradient": "var(--gradient-wall)",
+        "card-gradient": "var(--gradient-card)",
+        "hold-gradient-pink": "var(--gradient-hold-pink)",
+        "hold-gradient-blue": "var(--gradient-hold-blue)",
+        "hold-gradient-green": "var(--gradient-hold-green)",
       },
       keyframes: {
         "accordion-down": {
@@ -123,15 +127,24 @@ export default {
         },
         "swipe-right": {
           "0%": { transform: "translateX(0) rotate(0deg)", opacity: "1" },
-          "100%": { transform: "translateX(300px) rotate(15deg)", opacity: "0" },
+          "100%": {
+            transform: "translateX(300px) rotate(15deg)",
+            opacity: "0",
+          },
         },
         "swipe-left": {
           "0%": { transform: "translateX(0) rotate(0deg)", opacity: "1" },
-          "100%": { transform: "translateX(-300px) rotate(-15deg)", opacity: "0" },
+          "100%": {
+            transform: "translateX(-300px) rotate(-15deg)",
+            opacity: "0",
+          },
         },
         "swipe-up": {
           "0%": { transform: "translateY(0) scale(1)", opacity: "1" },
-          "100%": { transform: "translateY(-300px) scale(1.1)", opacity: "0" },
+          "100%": {
+            transform: "translateY(-300px) scale(1.1)",
+            opacity: "0",
+          },
         },
       },
       animation: {
@@ -143,6 +156,11 @@ export default {
         "swipe-right": "swipe-right 0.3s ease-out forwards",
         "swipe-left": "swipe-left 0.3s ease-out forwards",
         "swipe-up": "swipe-up 0.3s ease-out forwards",
+      },
+
+      /* ✅ 新增：全局内容宽度限制 */
+      maxWidth: {
+        content: "960px",
       },
     },
   },
