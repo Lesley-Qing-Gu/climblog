@@ -1,82 +1,76 @@
 // src/lib/logbook.ts
+import { auth, db, storage } from "./firebase";
 import {
   collection,
   addDoc,
-  query,
-  orderBy,
-  onSnapshot,
   serverTimestamp,
+  onSnapshot,
+  query,
   where,
+  orderBy,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "./firebase";
-import { getAuth } from "firebase/auth";
 
-export type RouteRecord = {
+export interface RouteRecord {
   id?: string;
-  uid: string;
-  imageUrl: string;
-  difficulty: string; // e.g., "V3"
-  date: string;       // yyyy-mm-dd（用于你已有的 toRelativeLabel 转换）
+  uid?: string;
+  imageUrl?: string;
+  difficulty: string;        // e.g. "V3"
+  date: string;              // ISO "YYYY-MM-DD"
   location: string;
   rating: number;
   notes: string;
   createdAt?: any;
-};
-
-async function uploadPhoto(file: File, uid: string) {
-  const id = crypto.randomUUID();
-  const path = `logbook/${uid}/${id}-${file.name}`;
-  const fileRef = ref(storage, path);
-  await uploadBytes(fileRef, file);
-  return await getDownloadURL(fileRef);
 }
 
-export async function saveRouteToFirestore(data: {
+export async function saveRouteToFirestore(input: {
   file?: File | null;
   difficulty: string;
-  date: string;       // "2025-11-03"
+  date: string;        // ISO
   location: string;
   rating: number;
   notes: string;
 }) {
-  const auth = getAuth();
   const user = auth.currentUser;
-  if (!user) throw new Error("Not logged in");
+  if (!user) throw new Error("User not logged in");
 
   let imageUrl = "";
-  if (data.file) {
-    imageUrl = await uploadPhoto(data.file, user.uid);
+  if (input.file) {
+    const fileRef = ref(storage, `routes/${user.uid}/${Date.now()}_${input.file.name}`);
+    await uploadBytes(fileRef, input.file);
+    imageUrl = await getDownloadURL(fileRef);
   }
 
-  await addDoc(collection(db, "logbook"), {
+  const col = collection(db, "logbook"); // 顶层集合
+  await addDoc(col, {
     uid: user.uid,
     imageUrl,
-    difficulty: data.difficulty,
-    date: data.date,
-    location: data.location,
-    rating: data.rating,
-    notes: data.notes,
+    difficulty: input.difficulty,
+    date: input.date,
+    location: input.location,
+    rating: input.rating,
+    notes: input.notes,
     createdAt: serverTimestamp(),
   });
 }
 
-export function listenRoutesForUser(cb: (routes: RouteRecord[]) => void) {
-  const auth = getAuth();
+export function listenRoutesForUser(cb: (rows: RouteRecord[]) => void) {
   const user = auth.currentUser;
-  if (!user) return;
+  if (!user) return () => {};
 
+  const col = collection(db, "logbook");
   const q = query(
-    collection(db, "logbook"),
+    col,
     where("uid", "==", user.uid),
     orderBy("createdAt", "desc")
   );
 
-  onSnapshot(q, (snap) => {
-    const arr: RouteRecord[] = snap.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as any),
-    }));
-    cb(arr);
-  });
+  return onSnapshot(
+    q,
+    (snap) => {
+      const rows = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as RouteRecord[];
+      cb(rows);
+    },
+    (err) => console.error("onSnapshot error:", err)
+  );
 }
