@@ -1,4 +1,3 @@
-// src/pages/LogbookPage.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Calendar, MapPin, Star, Filter, ChevronDown, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { saveRouteToFirestore, listenRoutesForUser, RouteRecord } from "@/lib/lo
 import { onAuth } from "@/lib/firebase";
 import { toast } from "sonner";
 
-/* utils */
+/* ---------------- utils ---------------- */
 function getRandomDots(n: number) {
   const colors = ["#f87171", "#34d399", "#60a5fa", "#fbbf24", "#a78bfa", "#fb7185", "#38bdf8"];
   return Array.from({ length: n }).map(() => ({
@@ -35,7 +34,7 @@ function colorForDifficulty(diff: string): ColorToken {
   return "primary";
 }
 
-/* UI Route type: 带原始日期与展示文案 */
+/* ---------------- UI type ---------------- */
 type UIRoute = {
   id: string;
   image: string;
@@ -48,80 +47,61 @@ type UIRoute = {
   color: ColorToken;
 };
 
-/* 默认四条（带 dateISO） */
+/* ---------------- demo routes ---------------- */
 const todayISO = new Date().toISOString().slice(0, 10);
 const yISO = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 const d2ISO = new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10);
 const w1ISO = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
 
 const demoRoutes: UIRoute[] = [
-  { id: "demo1", image: climbingWallSample, difficulty: "V4", dateISO: todayISO, dateLabel: "Today", location: "Boulder Gym", rating: 5, notes: "Nailed it! Perfect technique 💪", color: "primary" },
-  { id: "demo2", image: climbingWallSample, difficulty: "V3", dateISO: yISO,     dateLabel: "Yesterday", location: "Climb Zone",  rating: 4, notes: "Challenging start sequence", color: "accent" },
-  { id: "demo3", image: climbingWallSample, difficulty: "V5", dateISO: d2ISO,    dateLabel: "2 days ago", location: "Boulder Gym", rating: 3, notes: "Almost sent it!",         color: "secondary" },
-  { id: "demo4", image: climbingWallSample, difficulty: "V2", dateISO: w1ISO,    dateLabel: "1 week ago", location: "Rock Hall",   rating: 5, notes: "Nice warm-up route ✨",    color: "warning" },
+  { id: "demo1", image: climbingWallSample, difficulty: "V4", dateISO: todayISO, dateLabel: "Today",       location: "Boulder Gym", rating: 5, notes: "Nailed it! Perfect technique 💪", color: "primary"   },
+  { id: "demo2", image: climbingWallSample, difficulty: "V3", dateISO: yISO,    dateLabel: "Yesterday",   location: "Climb Zone",  rating: 4, notes: "Challenging start sequence",   color: "accent"    },
+  { id: "demo3", image: climbingWallSample, difficulty: "V5", dateISO: d2ISO,   dateLabel: "2 days ago",  location: "Boulder Gym", rating: 3, notes: "Almost sent it!",              color: "secondary" },
+  { id: "demo4", image: climbingWallSample, difficulty: "V2", dateISO: w1ISO,   dateLabel: "1 week ago",  location: "Rock Hall",   rating: 5, notes: "Nice warm-up route ✨",        color: "warning"   },
 ];
 
+/* ================ Page ================ */
 export default function LogbookPage() {
   const [routes, setRoutes] = useState<UIRoute[]>(demoRoutes);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const dots = useMemo(() => getRandomDots(8), []);
 
-  /* filters */
+  /* -------- filters -------- */
   const [showFilters, setShowFilters] = useState(true);
   const [difficulty, setDifficulty] = useState("all");
   const [location, setLocation] = useState("all");
   const [timeRange, setTimeRange] = useState("all"); // all|today|7|30
 
-  /* image preview */
-  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
-
-  /* auth + realtime listen */
+  // 动态选项（包含新增的地址/难度）
+  const difficultyOptions = useMemo(
+    () => ["all", ...Array.from(new Set(routes.map(r => r.difficulty)))],
+    [routes]
+  );
+  const locationOptions = useMemo(
+    () => ["all", ...Array.from(new Set(routes.map(r => r.location).filter(Boolean)))],
+    [routes]
+  );
+  // 若当前选项不在集合里，回退到 all
   useEffect(() => {
-    let off: any;
-    const unAuth = onAuth((user) => {
-      if (user) {
-        setUserId(user.uid);
-        off?.();
-        off = listenRoutesForUser((rows) => {
-          const fromFS: UIRoute[] = rows.map((r) => ({
-            id: r.id || crypto.randomUUID(),
-            image: r.imageUrl || climbingWallSample,
-            difficulty: r.difficulty,
-            dateISO: r.date,
-            dateLabel: toRelativeLabel(r.date),
-            location: r.location,
-            rating: r.rating,
-            notes: r.notes,
-            color: colorForDifficulty(r.difficulty),
-          }));
-          // 用 Firestore 数据覆盖临时项，再追加 demo
-          setRoutes([...fromFS, ...demoRoutes]);
-        });
-      } else {
-        setUserId(null);
-        off?.();
-        setRoutes(demoRoutes);
-      }
-    });
-    return () => {
-      unAuth?.();
-      off?.();
-    };
-  }, []);
+    if (!difficultyOptions.includes(difficulty)) setDifficulty("all");
+    if (!locationOptions.includes(location)) setLocation("all");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routes]);
 
-  /* filtering 使用 dateISO */
+  // 过滤逻辑（用 dateISO 参与时间判断）
   const filtered = useMemo(() => {
     const now = Date.now();
     return routes.filter((r) => {
       const okDiff = difficulty === "all" || r.difficulty === difficulty;
-      const okLoc  = location === "all"   || r.location === location;
-      let okTime   = true;
+      const okLoc = location === "all" || r.location === location;
+      let okTime = true;
       if (timeRange !== "all") {
         const d = new Date(r.dateISO).getTime();
-        const diffDays = Math.floor((now - d) / 86400000);
-        if (timeRange === "today") okTime = diffDays === 0;
-        else if (timeRange === "7") okTime = diffDays <= 7;
-        else if (timeRange === "30") okTime = diffDays <= 30;
+        const days = Math.floor((now - d) / 86400000);
+        if (timeRange === "today") okTime = days === 0;
+        else if (timeRange === "7") okTime = days <= 7;
+        else if (timeRange === "30") okTime = days <= 30;
       }
       return okDiff && okLoc && okTime;
     });
@@ -132,7 +112,51 @@ export default function LogbookPage() {
       <Star key={i} className={`w-4 h-4 ${i < n ? "text-warning fill-warning" : "text-muted"}`} />
     ));
 
-  /* add route form */
+  /* -------- auth + realtime snapshot（传 uid） -------- */
+  useEffect(() => {
+    let off: (() => void) | undefined;
+
+    const unAuth = onAuth((user) => {
+      if (user) {
+        setUserId(user.uid);
+        off?.();
+        // ✅ 把 uid 传给监听，避免刷新时 auth.currentUser 为空的竞态
+        off = listenRoutesForUser(user.uid, (rows: RouteRecord[]) => {
+          const fsRoutes: UIRoute[] = rows.map((r) => ({
+            id: r.id || crypto.randomUUID(),
+            image: r.imageUrl || climbingWallSample,
+            difficulty: r.difficulty,
+            dateISO: r.date,
+            dateLabel: toRelativeLabel(r.date),
+            location: r.location,
+            rating: r.rating,
+            notes: r.notes,
+            color: colorForDifficulty(r.difficulty),
+          }));
+
+          if (fsRoutes.length > 0) {
+            setRoutes(fsRoutes);     // 有真实数据 → 用 Firestore
+          } else {
+            setRoutes(demoRoutes);   // 没数据 → 回退 demo
+          }
+        });
+      } else {
+        setUserId(null);
+        off?.();
+        setRoutes(demoRoutes);
+      }
+    });
+
+    return () => {
+      unAuth?.();
+      off?.();
+    };
+  }, []);
+
+  /* -------- preview popup -------- */
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+
+  /* -------- add form -------- */
   const [open, setOpen] = useState(false);
   const [formDifficulty, setFormDifficulty] = useState("V3");
   const [formLocation, setFormLocation] = useState("");
@@ -156,7 +180,7 @@ export default function LogbookPage() {
     try {
       setLoading(true);
 
-      // 乐观更新：先插入一条临时记录，界面立即看到
+      // 乐观更新：立即插入一条临时记录
       const tempId = `temp-${Date.now()}`;
       const optimistic: UIRoute = {
         id: tempId,
@@ -186,57 +210,41 @@ export default function LogbookPage() {
       setPhotoUrl(null);
       setFormLocation("");
       setFormNotes("");
-      // snapshot 到来后会用 Firestore 数据覆盖（包含真正 id）
+      // snapshot 返回后，会用真实数据覆盖（包含真实 id）
     } catch (err: any) {
       console.error(err);
       toast.error("❌ Failed to save: " + err.message);
-      // 回滚乐观项
+      // 回滚临时项
       setRoutes((prev) => prev.filter((r) => !r.id.startsWith("temp-")));
     } finally {
       setLoading(false);
     }
   };
 
-  /* UI */
-  const optionsBlock = (
-    <div className="px-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-      {[
-        { label: "Difficulty", value: difficulty, set: setDifficulty, options: ["all", "V2", "V3", "V4", "V5"] },
-        { label: "Location", value: location, set: setLocation, options: ["all", "Boulder Gym", "Climb Zone", "Rock Hall"] },
-        { label: "Time Range", value: timeRange, set: setTimeRange, options: ["all", "today", "7", "30"] },
-      ].map((f, idx) => (
-        <label key={idx} className="flex flex-col text-sm">
-          <span className="mb-1 text-muted-foreground">{f.label}</span>
-          <div className="relative">
-            <select
-              value={f.value}
-              onChange={(e) => f.set(e.target.value)}
-              className="w-full rounded-lg border bg-card text-foreground px-3 py-2 appearance-none pr-9"
-            >
-              {f.options.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt === "all"
-                    ? "All"
-                    : f.label === "Time Range"
-                    ? opt === "today"
-                      ? "Today"
-                      : `Last ${opt} days`
-                    : opt}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          </div>
-        </label>
-      ))}
-    </div>
-  );
-
+  /* ---------------- UI ---------------- */
   return (
     <>
+      {/* 防止动态 class 被摇走（bg-primary/bg-secondary/bg-accent/bg-warning） */}
+      <div className="hidden">
+        <div className="bg-primary bg-secondary bg-accent bg-warning" />
+      </div>
+
       <div className="relative min-h-screen bg-gray-100 overflow-hidden">
-        {getRandomDots(8).map((d, i) => (
-          <div key={i} style={{ position: "absolute", top: d.top, left: d.left, width: 40, height: 40, background: d.color, borderRadius: "50%", boxShadow: "0 2px 8px rgba(0,0,0,.12)", zIndex: 10 }} />
+        {dots.map((d, i) => (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              top: d.top,
+              left: d.left,
+              width: 40,
+              height: 40,
+              background: d.color,
+              borderRadius: "50%",
+              boxShadow: "0 2px 8px rgba(0,0,0,.12)",
+              zIndex: 10,
+            }}
+          />
         ))}
 
         <div className="relative z-20 space-y-6 pb-24">
@@ -258,15 +266,64 @@ export default function LogbookPage() {
             </div>
           </div>
 
-          {showFilters && optionsBlock}
+          {/* Filters */}
+          {showFilters && (
+            <div className="px-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { label: "Difficulty", value: difficulty, set: setDifficulty, options: difficultyOptions },
+                { label: "Location", value: location, set: setLocation, options: locationOptions },
+                { label: "Time Range", value: timeRange, set: setTimeRange, options: ["all", "today", "7", "30"] },
+              ].map((f, idx) => (
+                <label key={idx} className="flex flex-col text-sm">
+                  <span className="mb-1 text-muted-foreground">{f.label}</span>
+                  <div className="relative">
+                    <select
+                      value={f.value}
+                      onChange={(e) => f.set(e.target.value)}
+                      className="w-full rounded-lg border bg-card text-foreground px-3 py-2 appearance-none pr-9"
+                    >
+                      {f.options.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt === "all"
+                            ? "All"
+                            : f.label === "Time Range"
+                            ? opt === "today"
+                              ? "Today"
+                              : `Last ${opt} days`
+                            : opt}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
 
-          {/* List */}
+          {/* Routes list */}
           <div className="space-y-4 px-4">
             {filtered.map((r) => (
               <div key={r.id} className="bg-white rounded-xl shadow p-4 flex gap-4 items-start">
-                <button type="button" onClick={() => setPreviewSrc(r.image)} className="relative focus:outline-none">
+                <button
+                  type="button"
+                  onClick={() => setPreviewSrc(r.image)}
+                  className="relative focus:outline-none"
+                  title="Click to preview"
+                >
                   <img src={r.image} alt={r.difficulty} className="w-20 h-20 rounded-lg object-cover" />
-                  <div className={`absolute -top-2 -right-2 px-2 py-1 text-xs rounded-full bg-${r.color}`}>
+                  {/* 颜色徽章（用固定类，避免 JIT 丢失） */}
+                  <div
+                    className={`absolute -top-2 -right-2 px-2 py-1 text-xs rounded-full ${
+                      r.color === "primary"
+                        ? "bg-primary"
+                        : r.color === "secondary"
+                        ? "bg-secondary"
+                        : r.color === "accent"
+                        ? "bg-accent"
+                        : "bg-warning"
+                    }`}
+                  >
                     <span className="text-white font-bold">{r.difficulty}</span>
                   </div>
                 </button>
@@ -295,20 +352,23 @@ export default function LogbookPage() {
         </div>
       </div>
 
-      {/* Preview */}
+      {/* Preview modal */}
       {previewSrc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/60" onClick={() => setPreviewSrc(null)} />
           <div className="relative w-[90vw] max-w-3xl bg-black rounded-2xl overflow-hidden shadow-2xl">
             <img src={previewSrc} alt="preview" className="w-full h-auto max-h-[80vh] object-contain" />
-            <button onClick={() => setPreviewSrc(null)} className="absolute top-3 right-3 bg-white/20 hover:bg-white/40 text-white rounded-full p-1">
+            <button
+              onClick={() => setPreviewSrc(null)}
+              className="absolute top-3 right-3 bg-white/20 hover:bg-white/40 text-white rounded-full p-1"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
       )}
 
-      {/* Add modal */}
+      {/* Add Route modal */}
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
@@ -320,7 +380,10 @@ export default function LogbookPage() {
             <form className="space-y-4" onSubmit={onSubmitNew}>
               <div>
                 <label className="text-sm">Photo</label>
-                <div className="border-2 border-dashed rounded-xl p-3 mt-1 flex items-center gap-3 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <div
+                  className="border-2 border-dashed rounded-xl p-3 mt-1 flex items-center gap-3 cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                     {photoUrl ? <img src={photoUrl} className="w-full h-full object-cover" /> : <Upload className="w-5 h-5 text-gray-400" />}
                   </div>
@@ -328,14 +391,40 @@ export default function LogbookPage() {
                 </div>
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
               </div>
+
               <div className="grid grid-cols-2 gap-3">
-                <input value={formLocation} onChange={(e) => setFormLocation(e.target.value)} placeholder="Location" className="border rounded-lg px-3 py-2" />
-                <select value={formDifficulty} onChange={(e) => setFormDifficulty(e.target.value)} className="border rounded-lg px-3 py-2">
-                  {Array.from({ length: 11 }, (_, i) => `V${i}`).map((v) => <option key={v}>{v}</option>)}
+                <input
+                  value={formLocation}
+                  onChange={(e) => setFormLocation(e.target.value)}
+                  placeholder="Location"
+                  className="border rounded-lg px-3 py-2"
+                />
+                <select
+                  value={formDifficulty}
+                  onChange={(e) => setFormDifficulty(e.target.value)}
+                  className="border rounded-lg px-3 py-2"
+                >
+                  {Array.from({ length: 11 }, (_, i) => `V${i}`).map((v) => (
+                    <option key={v}>{v}</option>
+                  ))}
                 </select>
               </div>
-              <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} className="border rounded-lg px-3 py-2 w-full" />
-              <textarea rows={3} value={formNotes} onChange={(e) => setFormNotes(e.target.value)} placeholder="Notes" className="border rounded-lg px-3 py-2 w-full" />
+
+              <input
+                type="date"
+                value={formDate}
+                onChange={(e) => setFormDate(e.target.value)}
+                className="border rounded-lg px-3 py-2 w-full"
+              />
+
+              <textarea
+                rows={3}
+                value={formNotes}
+                onChange={(e) => setFormNotes(e.target.value)}
+                placeholder="Notes"
+                className="border rounded-lg px-3 py-2 w-full"
+              />
+
               <div className="flex justify-end gap-2">
                 <Button variant="outline" type="button" onClick={() => setOpen(false)}>Cancel</Button>
                 <Button type="submit" disabled={loading}>{loading ? "Saving..." : "Save"}</Button>

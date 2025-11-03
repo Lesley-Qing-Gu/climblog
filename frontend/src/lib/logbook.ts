@@ -7,7 +7,6 @@ import {
   onSnapshot,
   query,
   where,
-  orderBy,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -15,18 +14,18 @@ export interface RouteRecord {
   id?: string;
   uid?: string;
   imageUrl?: string;
-  difficulty: string;        // e.g. "V3"
-  date: string;              // ISO "YYYY-MM-DD"
+  difficulty: string; // e.g. "V3"
+  date: string;       // ISO: "YYYY-MM-DD"
   location: string;
   rating: number;
   notes: string;
-  createdAt?: any;
+  createdAt?: any;    // Firestore Timestamp
 }
 
 export async function saveRouteToFirestore(input: {
   file?: File | null;
   difficulty: string;
-  date: string;        // ISO
+  date: string;      // ISO
   location: string;
   rating: number;
   notes: string;
@@ -41,8 +40,7 @@ export async function saveRouteToFirestore(input: {
     imageUrl = await getDownloadURL(fileRef);
   }
 
-  const col = collection(db, "logbook"); // 顶层集合
-  await addDoc(col, {
+  await addDoc(collection(db, "logbook"), {
     uid: user.uid,
     imageUrl,
     difficulty: input.difficulty,
@@ -54,23 +52,30 @@ export async function saveRouteToFirestore(input: {
   });
 }
 
-export function listenRoutesForUser(cb: (rows: RouteRecord[]) => void) {
-  const user = auth.currentUser;
-  if (!user) return () => {};
-
-  const col = collection(db, "logbook");
-  const q = query(
-    col,
-    where("uid", "==", user.uid),
-    orderBy("createdAt", "desc")
-  );
+/**
+ * 传入 userId，避免依赖 auth.currentUser 的竞态。
+ * 不用 orderBy，客户端自己按 createdAt desc 排序，避免索引问题。
+ */
+export function listenRoutesForUser(
+  userId: string,
+  cb: (rows: RouteRecord[]) => void
+) {
+  const q1 = query(collection(db, "logbook"), where("uid", "==", userId));
 
   return onSnapshot(
-    q,
+    q1,
     (snap) => {
       const rows = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as RouteRecord[];
+      rows.sort((a, b) => {
+        const ta = a.createdAt?.toMillis?.() ?? 0;
+        const tb = b.createdAt?.toMillis?.() ?? 0;
+        return tb - ta;
+      });
       cb(rows);
     },
-    (err) => console.error("onSnapshot error:", err)
+    (err) => {
+      console.error("onSnapshot error:", err);
+      cb([]); // 失败时返回空，界面可回退 demo
+    }
   );
 }
