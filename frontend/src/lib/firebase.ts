@@ -18,8 +18,11 @@ const app = initializeApp({
   apiKey: import.meta.env.VITE_FB_API_KEY,
   authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FB_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET, // ✅ 必须加，否则报 no-default-bucket
+  storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET, 
 });
+
+console.log("VITE_FB_STORAGE_BUCKET = ", import.meta.env.VITE_FB_STORAGE_BUCKET);
+
 
 // -------------------------
 // 🔐 Auth（Google 登录）

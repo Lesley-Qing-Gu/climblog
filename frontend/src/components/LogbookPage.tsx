@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Calendar, MapPin, Star, Filter, ChevronDown, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import climbingWallSample from "@/assets/climbing-wall-sample.png";
-import { saveRouteToFirestore, listenRoutesForUser, RouteRecord } from "@/lib/logbook";
+import { saveRouteToFirestore, listenRoutesForUser, RouteRecord, seedDemoRoutesIfEmpty } from "@/lib/logbook";
 import { onAuth } from "@/lib/firebase";
 import { toast } from "sonner";
 
@@ -115,27 +115,37 @@ export default function LogbookPage() {
       />
     ));
 
-  /* -------- auth + realtime -------- */
+  /* -------- auth + realtime + demo seed -------- */
   useEffect(() => {
     let off: (() => void) | undefined;
     const unAuth = onAuth(user => {
       if (user) {
         setUserId(user.uid);
-        off?.();
-        off = listenRoutesForUser(user.uid, rows => {
-          const fsRoutes: UIRoute[] = rows.map(r => ({
-            id: r.id || crypto.randomUUID(),
-            image: r.imageUrl || climbingWallSample,
-            difficulty: r.difficulty,
-            dateISO: r.date,
-            dateLabel: toRelativeLabel(r.date),
-            location: r.location,
-            rating: r.rating,
-            notes: r.notes,
-            color: colorForDifficulty(r.difficulty),
-          }));
-          setRoutes(fsRoutes.length > 0 ? fsRoutes : demoRoutes);
-        });
+
+        (async () => {
+          try {
+            // 新用户的话，在 Firestore 里写入一批 demo routes
+            await seedDemoRoutesIfEmpty(user.uid);
+          } catch (err) {
+            console.error("seedDemoRoutesIfEmpty error:", err);
+          }
+
+          off?.();
+          off = listenRoutesForUser(user.uid, rows => {
+            const fsRoutes: UIRoute[] = rows.map(r => ({
+              id: r.id || crypto.randomUUID(),
+              image: r.imageUrl || climbingWallSample,
+              difficulty: r.difficulty,
+              dateISO: r.date,
+              dateLabel: toRelativeLabel(r.date),
+              location: r.location,
+              rating: r.rating,
+              notes: r.notes,
+              color: colorForDifficulty(r.difficulty),
+            }));
+            setRoutes(fsRoutes.length > 0 ? fsRoutes : demoRoutes);
+          });
+        })();
       } else {
         setUserId(null);
         off?.();
@@ -167,6 +177,10 @@ export default function LogbookPage() {
     if (!f) return;
     setPhotoFile(f);
     setPhotoUrl(URL.createObjectURL(f));
+  };
+
+  const onPhotoClick = () => {
+    toast.info("Image upload is currently unavailable due to Firebase storage limitations.");
   };
 
   const onSubmitNew = async (e: React.FormEvent) => {
@@ -217,7 +231,19 @@ export default function LogbookPage() {
     <>
       <div className="relative min-h-screen bg-gray-100 overflow-hidden">
         {dots.map((d, i) => (
-          <div key={i} style={{ position: "absolute", top: d.top, left: d.left, width: 40, height: 40, background: d.color, borderRadius: "50%", boxShadow: "0 2px 8px rgba(0,0,0,.12)" }} />
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              top: d.top,
+              left: d.left,
+              width: 40,
+              height: 40,
+              background: d.color,
+              borderRadius: "50%",
+              boxShadow: "0 2px 8px rgba(0,0,0,.12)",
+            }}
+          />
         ))}
 
         <div className="relative z-20 space-y-6 pb-24">
@@ -228,8 +254,14 @@ export default function LogbookPage() {
               <p className="text-muted-foreground">Your climbing journey</p>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" size="sm" onClick={() => setOpen(true)}><Upload className="w-4 h-4 mr-2" />Add Route</Button>
-              <Button variant="outline" size="sm" onClick={() => setShowFilters(s => !s)}><Filter className="w-4 h-4 mr-2" />Filter</Button>
+              <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+                <Upload className="w-4 h-4 mr-2" />
+                Add Route
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowFilters(s => !s)}>
+                <Filter className="w-4 h-4 mr-2" />
+                Filter
+              </Button>
             </div>
           </div>
 
@@ -251,7 +283,13 @@ export default function LogbookPage() {
                     >
                       {f.options.map(opt => (
                         <option key={opt} value={opt}>
-                          {opt === "all" ? "All" : f.label === "Time Range" ? (opt === "today" ? "Today" : `Last ${opt} days`) : opt}
+                          {opt === "all"
+                            ? "All"
+                            : f.label === "Time Range"
+                            ? opt === "today"
+                              ? "Today"
+                              : `Last ${opt} days`
+                            : opt}
                         </option>
                       ))}
                     </select>
@@ -265,20 +303,41 @@ export default function LogbookPage() {
           {/* Route cards */}
           <div className="space-y-4 px-4">
             {filtered.map(r => (
-              <div key={r.id} className="bg-card text-card-foreground rounded-xl shadow p-4 flex gap-4 items-start">
-                <button type="button" onClick={() => setPreviewSrc(r.image)} className="relative focus:outline-none">
+              <div
+                key={r.id}
+                className="bg-card text-card-foreground rounded-xl shadow p-4 flex gap-4 items-start"
+              >
+                <button
+                  type="button"
+                  onClick={() => setPreviewSrc(r.image)}
+                  className="relative focus:outline-none"
+                >
                   <img src={r.image} alt={r.difficulty} className="w-20 h-20 rounded-lg object-cover" />
-                  <div className={`absolute -top-2 -right-2 px-2 py-1 text-xs rounded-full ${
-                    r.color === "primary" ? "bg-primary" : r.color === "secondary" ? "bg-secondary" : r.color === "accent" ? "bg-accent" : "bg-warning"
-                  }`}>
+                  <div
+                    className={`absolute -top-2 -right-2 px-2 py-1 text-xs rounded-full ${
+                      r.color === "primary"
+                        ? "bg-primary"
+                        : r.color === "secondary"
+                        ? "bg-secondary"
+                        : r.color === "accent"
+                        ? "bg-accent"
+                        : "bg-warning"
+                    }`}
+                  >
                     <span className="text-white font-bold">{r.difficulty}</span>
                   </div>
                 </button>
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-1"><Calendar className="w-3 h-3" />{r.dateLabel}</div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" />{r.location}</div>
+                      <div className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {r.dateLabel}
+                      </div>
+                      <div className="text-sm text-muted-foreground flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {r.location}
+                      </div>
                     </div>
                     <div className="flex gap-1">{renderStars(r.rating)}</div>
                   </div>
@@ -297,41 +356,119 @@ export default function LogbookPage() {
           <div className="relative bg-card text-card-foreground rounded-2xl shadow p-5 w-[92vw] max-w-lg">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold">Add Route</h3>
-              <button onClick={() => setOpen(false)}><X className="w-4 h-4" /></button>
+              <button onClick={() => setOpen(false)}>
+                <X className="w-4 h-4" />
+              </button>
             </div>
             <form className="space-y-4" onSubmit={onSubmitNew}>
               <div>
                 <label className="text-sm text-muted-foreground">Photo</label>
-                <div className="border-2 border-dashed rounded-xl p-3 mt-1 flex items-center gap-3 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <div
+                  className="border-2 border-dashed rounded-xl p-3 mt-1 flex items-center gap-3 cursor-pointer"
+                  onClick={onPhotoClick}
+                >
                   <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden flex items-center justify-center">
-                    {photoUrl ? <img src={photoUrl} className="w-full h-full object-cover" /> : <Upload className="w-5 h-5 text-muted-foreground" />}
+                    {photoUrl ? (
+                      <img src={photoUrl} className="w-full h-full object-cover" />
+                    ) : (
+                      <Upload className="w-5 h-5 text-muted-foreground" />
+                    )}
                   </div>
-                  <p className="text-sm">Click to upload</p>
+                  <div className="flex flex-col">
+                    <p className="text-sm font-medium">Click to upload</p>
+                    <p className="text-xs text-muted-foreground">
+                      Image upload is currently unavailable due to Firebase storage limitations.
+                    </p>
+                  </div>
                 </div>
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+
+                {/* Input is disabled (kept for future use, but won't be triggered) */}
+                {/* 
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onFileChange}
+                />
+                */}
+
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <input value={formLocation} onChange={e => setFormLocation(e.target.value)} placeholder="Location" className="border rounded-lg px-3 py-2" />
-                <select value={formDifficulty} onChange={e => setFormDifficulty(e.target.value)} className="border rounded-lg px-3 py-2">
-                  {Array.from({ length: 11 }, (_, i) => `V${i}`).map(v => <option key={v}>{v}</option>)}
+                <input
+                  value={formLocation}
+                  onChange={e => setFormLocation(e.target.value)}
+                  placeholder="Location"
+                  className="border rounded-lg px-3 py-2"
+                />
+                <select
+                  value={formDifficulty}
+                  onChange={e => setFormDifficulty(e.target.value)}
+                  className="border rounded-lg px-3 py-2"
+                >
+                  {Array.from({ length: 11 }, (_, i) => `V${i}`).map(v => (
+                    <option key={v}>{v}</option>
+                  ))}
                 </select>
               </div>
 
-              <input type="date" value={formDate} onChange={e => setFormDate(e.target.value)} className="border rounded-lg px-3 py-2 w-full" />
+              <input
+                type="date"
+                value={formDate}
+                onChange={e => setFormDate(e.target.value)}
+                className="border rounded-lg px-3 py-2 w-full"
+              />
 
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Rating</p>
                 <div className="flex gap-1">{renderStars(formRating, true, setFormRating)}</div>
               </div>
 
-              <textarea rows={3} value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder="Notes" className="border rounded-lg px-3 py-2 w-full" />
+              <textarea
+                rows={3}
+                value={formNotes}
+                onChange={e => setFormNotes(e.target.value)}
+                placeholder="Notes"
+                className="border rounded-lg px-3 py-2 w-full"
+              />
 
               <div className="flex justify-end gap-2">
-                <Button variant="outline" type="button" onClick={() => setOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={loading}>{loading ? "Saving..." : "Save"}</Button>
+                <Button variant="outline" type="button" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Saving..." : "Save"}
+                </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Image preview modal：点击缩略图弹出的放大图 */}
+      {previewSrc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* 背景遮罩 */}
+          <div className="absolute inset-0 bg-black/70" onClick={() => setPreviewSrc(null)} />
+
+          {/* 中央大图容器 */}
+          <div className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center">
+            {/* 关闭按钮 */}
+            <button
+              type="button"
+              onClick={() => setPreviewSrc(null)}
+              className="absolute -top-4 -right-4 rounded-full bg-black/80 text-white p-2 shadow-lg"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* 大图本体 */}
+            <img
+              src={previewSrc}
+              alt="Route preview"
+              className="max-w-[90vw] max-h-[85vh] rounded-2xl object-contain shadow-2xl bg-black"
+            />
           </div>
         </div>
       )}

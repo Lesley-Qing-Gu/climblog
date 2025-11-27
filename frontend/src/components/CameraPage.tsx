@@ -3,7 +3,7 @@ import { Camera, RotateCcw, Image as ImageIcon, Upload, BarChart3, SlidersHorizo
 import { Button } from "@/components/ui/button";
 
 // 后端地址（从 .env 读取；没配就用 localhost）
-const DETECT_BASE = import.meta.env.VITE_DETECT_BASE || "http://localhost:5001";
+const DETECT_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 // 随机彩点（背景装饰）
 function getRandomDots(count: number) {
