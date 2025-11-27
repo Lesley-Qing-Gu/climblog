@@ -1,95 +1,113 @@
 # 🧗‍♀️ ClimbLog  
-*A Future Web Service for Climbing Route Recording and Playful Analysis*  
-Aalto University · CS-E4400 Design of WWW Services D · Autumn 2025
+**A Web Service for Climbing Log Tracking, Hold Detection & AI Challenges**  
+*Aalto University · CS-E4400 Design of WWW Services D · Autumn 2025*
 
 ---
 
-## 🎯 Overview
-**ClimbLog** is a social and data-driven climbing companion that helps climbers **record, analyze, and share** their climbing sessions.  
-The platform gamifies climbing progress and visualizes performance trends to make training more engaging and community-oriented.
+## 🎯 Overview  
+**ClimbLog** is an interactive web application that helps climbers **record**, **analyze**, and **stay motivated** in their climbing practice.  
+The service integrates **computer vision**, **AI-generated challenges**, and a **digital logbook** into a playful and easy-to-use interface.
 
-Our goal is to create a **web-based interactive service** that combines **computer vision, real-time logging, and data visualization** to support climbers in improving their skills and celebrating achievements.
+Our goal was to design and implement a **fully functional web prototype** demonstrating how dynamic, adaptive features can support climbers in tracking progress and making training more engaging.
 
 ---
 
-## ✨ Core Features
+## ✨ Core Features (Final Implementation)
 
-### 🧩 Route Detection (Planned)
-- Uses a **Hold Detector ML model** (via Roboflow API) to identify holds from climbing wall photos.  
-- Automatically detects routes and grades for session recording.
+### 🧩 Hold Detection (Roboflow API)
+- Users can **upload a climbing wall photo** or take one on mobile.
+- The system detects **hold count** using the Roboflow Hold Detector.
+- Adjustable **confidence threshold** for more reliable detection.
+- Count-only detection (no color classification) due to free-tier performance limits.
 
-### 📊 Digital Logbook
-- Allows climbers to log ascents with details like **difficulty, color, wall angle, attempts, and send status**.
-- Generates personal statistics over time (e.g., grades climbed, sessions/week, success rate).
+### 📘 Digital Logbook  
+- Users can manually create climbing logs with:
+  - Grade  
+  - Location  
+  - Notes  
+  - Timestamp  
+- Includes **filtering** by difficulty, location, and date.
+- A **Log Detail page** provides a more detailed view for each entry.
+- Default placeholder image used (image storage removed due to Firebase free-tier limits).
 
-### 🏔️ Challenge Generator
-- Creates climbing “missions” such as *Climb 3 blue routes in 20 minutes* or *Reach the height of Mount Fuji*.
-- Uses mountain height data via external **Mountain APIs**.
+### 🧗‍♂️ AI Challenge Generator  
+- Uses **Google Gemini API** to generate personalized climbing challenges.
+- Swipe-based interactions:
+  - **Left** → dismiss  
+  - **Right** → like  
+  - **Up** → start immediately  
+- Prompts adjusted to produce realistic indoor bouldering missions.
 
-### 🪶 Achievement & Gamification
-- Unlock visual **badges** and milestones (e.g., “100 climbs completed”).
-- Compare progress with friends.
+### 🪶 Achievements & Visual Feedback  
+- Visualizes total climbing height compared to famous mountains (static data).  
+- Profile page displays:
+  - Streak  
+  - Total climbs  
+  - Favorite difficulty  
+  - Achievement milestones  
 
-### 🌐 Social & Sharing (Planned)
-- Users can view leaderboards and share logs or routes publicly.
-- Integration with community climbing gyms for route sync.
+### 🧭 Responsive Navigation  
+- Desktop → top navigation bar  
+- Mobile → bottom navigation bar  
+- Layout uses max-width constraints for better readability.
 
 ---
 
 ## 🧰 Tech Stack
 
 | Layer | Technologies |
-|-------|---------------|
-| Frontend | React + Vite + Tailwind CSS |
-| Backend | Firebase (Firestore, Auth, Cloud Functions) |
-| Realtime | WebSockets |
-| ML / CV | Roboflow Hold Detector API |
-| Data APIs | Mountain API, optional OpenTopoData |
+|-------|------------|
+| Frontend | **React + TypeScript + Vite**, Tailwind CSS, shadcn/ui |
+| Backend | **Firebase** (Auth + Firestore) |
+| Computer Vision | **Roboflow Hold Detection API** |
+| AI Generation | **Google Gemini API** |
+| Deployment | Netlify (frontend), Render (API), Firebase (backend services) |
 | Version Control | GitLab (Aalto instance) |
 
 ---
 
 # 🧗‍♀️ ClimbLog – Technology Stack Overview
 
-## 🎨 Frontend Framework
-- **React 18 + TypeScript** – modern, component-based UI framework  
-- **Vite** – ultra-fast development server and build tool  
-- **Tailwind CSS** – utility-first CSS framework for responsive design  
-- **shadcn/ui** – accessible React UI components  
-- **Lucide Icons** – clean and customizable SVG icon set  
+## 🎨 Frontend
+- **React 18 + TypeScript** for component-based UI  
+- **Vite** for fast development  
+- **Tailwind CSS** for styling  
+- **shadcn/ui + Lucide Icons** for consistent components  
+- Fully responsive for mobile and desktop  
+
+Shared UI components include:
+- Navigation bar (top/bottom)
+- Achievement cards  
+- Log cards  
+- Swipeable challenge cards  
 
 ---
 
 ## 🧩 Project Architecture
-- **Component-based structure:** organized under `src/components` and `src/pages`  
-- **Page logic:** internal navigation managed via React `useState`  
-- **Main pages:** `HomePage`, `LogbookPage`, `ChallengesPage`, `CameraPage`, `ProfilePage`  
-- **Shared UI:** `BottomNavigation` for consistent navigation  
-- **Responsive layout:** designed for both mobile and desktop  
+**Pages:**
+- `LoginPage`  
+- `HomePage`  
+- `LogbookPage`  
+- `LogDetailPage`  
+- `ChallengesPage`  
+- `CameraPage`  
+- `ProfilePage`  
+
+**Key Systems:**
+- Google login authentication  
+- Firestore database for logs and statistics  
+- Roboflow API for hold detection  
+- Gemini API for challenge generation  
+
+**Deployment:**
+- Frontend → Netlify  
+- Backend API routes → Render  
+- Authentication & database → Firebase  
 
 ---
 
-## ⚙️ Build
-- **Vite Configuration (`vite.config.ts`):**
-  - Path alias `@ → src/`  
-  - Dev server runs on port **8080**  
-  - `base: './'` for Netlify deployment  
+## 📎 License
+This project was created for the Aalto University course  
+**CS-E4400 Design of WWW Services D (Autumn 2025)**  
+and is intended for educational purposes only.
 
----
-
-## ☁️ Deployment
-- **Hosting:** [Netlify](https://climblog2025.netlify.app/)  
-  - Build command: `npm run build`  
-  - Publish directory: `dist/`  
-  - Current mode: **Manual deploys** (Netlify Drop)  
-- **Previous GitLab CI setup:**  
-  - `.gitlab-ci.yml` configured but **disabled due to missing Runners**  
-  - Switched to Netlify for accessible hosting  
-
----
-
-## 🧰 Development Workflow
-```bash
-npm install
-npm run dev     # start local dev server at http://localhost:8080
-npm run build   # generate /dist for deployment
